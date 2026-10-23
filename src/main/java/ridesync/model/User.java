@@ -1,0 +1,34 @@
+package ridesync.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "app_user")
+@Inheritance(strategy = InheritanceType.JOINED)
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
+
+    private String name;
+
+    @Column(unique = true, nullable = false)
+    private String phone;
+
+    private String password;
+
+    public User() {}
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+}

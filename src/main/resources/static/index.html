@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RideSync Web Application</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { background: #ffffff; width: 100%; max-width: 500px; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .dashboard-container { max-width: 800px; }
+        h2 { color: #1a202c; text-align: center; margin-bottom: 20px; font-weight: 700; }
+        p.subtitle { text-align: center; color: #718096; margin-bottom: 25px; font-size: 14px; }
+        .role-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .role-btn { flex: 1; padding: 12px; border: 2px solid #e2e8f0; background: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: #4a5568; }
+        .role-btn.active { border-color: #3182ce; background-color: #ebf8ff; color: #2b6cb0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; }
+        .btn-primary { width: 100%; padding: 12px; background: #3182ce; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; margin-top: 10px; }
+        .btn-primary:hover { background: #2b6cb0; }
+        .btn-success { background: #38a169; }
+        .btn-success:hover { background: #2f855a; }
+        .btn-secondary { background: #e2e8f0; color: #2d3748; }
+        .btn-danger { background: #e53e3e; }
+        .switch-link { text-align: center; margin-top: 20px; font-size: 14px; color: #718096; }
+        .switch-link a { color: #3182ce; text-decoration: none; font-weight: 600; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #edf2f7; padding-bottom: 15px; margin-bottom: 20px; }
+        .user-badge { font-size: 14px; background: #edf2f7; padding: 6px 12px; border-radius: 20px; font-weight: 600; color: #2d3748; }
+        .earnings-badge { font-size: 15px; background: #c6f6d5; color: #22543d; padding: 8px 16px; border-radius: 20px; font-weight: 700; margin-top: 5px; display: inline-block; }
+        .section-box { background: #f7fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        .section-title { font-weight: 700; color: #2d3748; margin-bottom: 12px; font-size: 16px; }
+        .ride-card { background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #3182ce; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .alert { padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; display: none; }
+        .alert-success { background: #c6f6d5; color: #22543d; }
+        .alert-error { background: #fed7d7; color: #742a2a; }
+        .badge-status { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-PENDING { background: #feebc8; color: #744210; }
+        .status-ACCEPTED { background: #bee3f8; color: #2b6cb0; }
+        .status-COMPLETED { background: #c6f6d5; color: #22543d; }
+    </style>
+</head>
+<body>
+
+<!-- 1. REGISTRATION SCREEN -->
+<div id="registerScreen" class="container screen active">
+    <h2>Create Account</h2>
+    <p class="subtitle">Join RideSync today</p>
+    <div id="regAlert" class="alert"></div>
+    <div class="role-selector">
+        <button type="button" class="role-btn active" id="regRolePassenger" onclick="selectRole('REG', 'PASSENGER')">Passenger</button>
+        <button type="button" class="role-btn" id="regRoleDriver" onclick="selectRole('REG', 'DRIVER')">Driver</button>
+    </div>
+    <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group"><label>Full Name</label><input type="text" id="regName" required></div>
+        <div class="form-group"><label>Phone Number</label><input type="text" id="regPhone" required></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPassword" required></div>
+        <div id="driverFields" style="display: none;">
+            <div class="form-group"><label>Vehicle Type</label><input type="text" id="regVehicleType"></div>
+            <div class="form-group"><label>Vehicle Number</label><input type="text" id="regVehicleNumber"></div>
+        </div>
+        <button type="submit" class="btn-primary">Register</button>
+    </form>
+    <div class="switch-link">Already have an account? <a href="#" onclick="showScreen('loginScreen')">Login Here</a></div>
+</div>
+
+<!-- 2. LOGIN SCREEN -->
+<div id="loginScreen" class="container screen">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Login to RideSync</p>
+    <div id="loginAlert" class="alert"></div>
+    <form onsubmit="handleLogin(event)">
+        <div class="form-group"><label>Phone Number</label><input type="text" id="loginPhone" required></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPassword" required></div>
+        <button type="submit" class="btn-primary">Login</button>
+    </form>
+    <div class="switch-link">Don't have an account? <a href="#" onclick="showScreen('registerScreen')">Register Here</a></div>
+</div>
+
+<!-- 3. PASSENGER DASHBOARD -->
+<div id="passengerDashboard" class="container dashboard-container screen">
+    <div class="header-bar">
+        <div>
+            <h2>Passenger Dashboard</h2>
+            <span class="user-badge" id="passengerBadge">Welcome!</span>
+        </div>
+        <button class="btn-primary btn-danger" style="width: auto; padding: 8px 16px;" onclick="handleLogout()">Logout</button>
+    </div>
+
+    <div class="section-box">
+        <div class="section-title">Book a New Ride</div>
+        <div id="passengerAlert" class="alert"></div>
+        <form onsubmit="handleBookRide(event)">
+            <div class="form-group"><label>Pickup Location</label><input type="text" id="pickupAddr" required placeholder="Pickup Location"></div>
+            <div class="form-group"><label>Dropoff Location</label><input type="text" id="dropAddr" required placeholder="Dropoff Location"></div>
+            <button type="submit" class="btn-primary">Request Ride</button>
+        </form>
+    </div>
+
+    <div class="section-box">
+        <div class="section-title">My Rides</div>
+        <button class="btn-primary btn-secondary" onclick="loadPassengerRides()" style="margin-bottom: 15px;">Refresh Rides</button>
+        <div id="passengerRidesList"></div>
+    </div>
+</div>
+
+<!-- 4. DRIVER DASHBOARD -->
+<div id="driverDashboard" class="container dashboard-container screen">
+    <div class="header-bar">
+        <div>
+            <h2>Driver Dashboard</h2>
+            <span class="user-badge" id="driverBadge">Welcome Driver!</span><br>
+            <div class="earnings-badge" id="totalEarnings">Total Earned: ₹0</div>
+        </div>
+        <button class="btn-primary btn-danger" style="width: auto; padding: 8px 16px;" onclick="handleLogout()">Logout</button>
+    </div>
+
+    <div class="section-box">
+        <div class="section-title">Ride Activity</div>
+        <button class="btn-primary btn-secondary" onclick="loadDriverRides()" style="margin-bottom: 15px;">Refresh Dashboard</button>
+        <div id="driverRidesList"></div>
+    </div>
+</div>
+
+<script>
+    let selectedRegRole = 'PASSENGER';
+    let currentUser = null;
+
+    function getUserId(user) {
+        if (!user) return null;
+        return user.userId || user.id || user.passengerId || user.driverId;
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function selectRole(type, role) {
+        selectedRegRole = role;
+        document.getElementById('regRolePassenger').classList.toggle('active', role === 'PASSENGER');
+        document.getElementById('regRoleDriver').classList.toggle('active', role === 'DRIVER');
+        document.getElementById('driverFields').style.display = role === 'DRIVER' ? 'block' : 'none';
+    }
+
+    function showAlert(elementId, message, isSuccess) {
+        const el = document.getElementById(elementId);
+        el.innerText = message;
+        el.className = `alert ${isSuccess ? 'alert-success' : 'alert-error'}`;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    async function handleRegister(e) {
+        e.preventDefault();
+        const name = document.getElementById('regName').value;
+        const phone = document.getElementById('regPhone').value;
+        const password = document.getElementById('regPassword').value;
+
+        try {
+            let res;
+            if (selectedRegRole === 'PASSENGER') {
+                res = await fetch('/api/users/passengers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, password })
+                });
+            } else {
+                const vehicleType = document.getElementById('regVehicleType').value;
+                const vehicleNumber = document.getElementById('regVehicleNumber').value;
+                res = await fetch('/api/users/drivers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, password, availability: true, vehicle: { vehicleType, vehicleNumber, capacity: 4 } })
+                });
+            }
+
+            if (res.ok) {
+                showAlert('regAlert', 'Registration Successful!', true);
+                document.getElementById('registerForm').reset();
+                setTimeout(() => showScreen('loginScreen'), 1500);
+            } else {
+                showAlert('regAlert', 'Registration failed.', false);
+            }
+        } catch (err) { showAlert('regAlert', 'Error connecting to backend.', false); }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const phone = document.getElementById('loginPhone').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const res = await fetch('/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, password })
+            });
+
+            if (res.ok) {
+                const user = await res.json();
+                currentUser = user;
+
+                if (user.vehicle !== undefined || user.vehicleType !== undefined) {
+                    document.getElementById('driverBadge').innerText = `Driver: ${user.name}`;
+                    showScreen('driverDashboard');
+                    loadDriverRides();
+                } else {
+                    document.getElementById('passengerBadge').innerText = `Passenger: ${user.name}`;
+                    showScreen('passengerDashboard');
+                    loadPassengerRides();
+                }
+            } else {
+                showAlert('loginAlert', 'Invalid credentials.', false);
+            }
+        } catch (err) {
+            showAlert('loginAlert', 'Error connecting to server.', false);
+        }
+    }
+
+    async function handleBookRide(e) {
+        e.preventDefault();
+        const pickup = document.getElementById('pickupAddr').value;
+        const drop = document.getElementById('dropAddr').value;
+
+        try {
+            const res = await fetch('/api/rides/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    passengerId: getUserId(currentUser),
+                    pickupLocation: { latitude: 12.97, longitude: 77.59, address: pickup },
+                    dropLocation: { latitude: 12.93, longitude: 77.62, address: drop }
+                })
+            });
+            showAlert('passengerAlert', `Ride Requested! Status: PENDING`, true);
+            loadPassengerRides();
+        } catch (err) { showAlert('passengerAlert', 'Booking failed.', false); }
+    }
+
+    async function loadPassengerRides() {
+        try {
+            const res = await fetch(`/api/rides/passenger/${getUserId(currentUser)}`);
+            const rides = await res.json();
+            const container = document.getElementById('passengerRidesList');
+
+            if (!rides || rides.length === 0) {
+                container.innerHTML = '<p style="color: #a0aec0;">No rides found.</p>';
+                return;
+            }
+
+            container.innerHTML = rides.map(r => `
+                <div class="ride-card">
+                    <div><strong>Ride ID:</strong> #${r.rideId} | <span class="badge-status status-${r.status}">${r.status}</span></div>
+                    <div><strong>From:</strong> ${r.pickupLocation ? r.pickupLocation.address : 'N/A'}</div>
+                    <div><strong>To:</strong> ${r.dropLocation ? r.dropLocation.address : 'N/A'}</div>
+                    <div><strong>Fare:</strong> ₹${r.fare}</div>
+                    ${r.status === 'ACCEPTED' ? `
+                        <button class="btn-primary btn-success" onclick="payForRide(${r.rideId})">Pay ₹${r.fare} (Dummy Payment)</button>
+                    ` : ''}
+                </div>
+            `).join('');
+        } catch (err) { console.error(err); }
+    }
+
+    async function payForRide(rideId) {
+        try {
+            await fetch(`/api/rides/${rideId}/pay`, { method: 'POST' });
+            alert('Payment Successful! Ride status updated to COMPLETED.');
+            loadPassengerRides();
+        } catch (err) { alert('Payment failed.'); }
+    }
+
+    async function loadDriverRides() {
+        try {
+            const res = await fetch('/api/rides');
+            const rides = await res.json();
+            const container = document.getElementById('driverRidesList');
+            const currentDriverId = getUserId(currentUser);
+
+            const filteredRides = rides.filter(r => {
+                if (r.status === 'PENDING') return true;
+                return r.driverId === currentDriverId;
+            });
+
+            const earnings = rides
+                .filter(r => r.status === 'COMPLETED' && r.driverId === currentDriverId)
+                .reduce((sum, r) => sum + (r.fare || 0), 0);
+
+            document.getElementById('totalEarnings').innerText = `Total Earned: ₹${earnings}`;
+
+            if (filteredRides.length === 0) {
+                container.innerHTML = '<p style="color: #a0aec0;">No ride requests or history.</p>';
+                return;
+            }
+
+            container.innerHTML = filteredRides.map(r => `
+                <div class="ride-card">
+                    <div><strong>Ride ID:</strong> #${r.rideId} | <span class="badge-status status-${r.status}">${r.status}</span></div>
+                    <div><strong>Pickup:</strong> ${r.pickupLocation ? r.pickupLocation.address : 'N/A'}</div>
+                    <div><strong>Dropoff:</strong> ${r.dropLocation ? r.dropLocation.address : 'N/A'}</div>
+                    <div><strong>Fare:</strong> ₹${r.fare}</div>
+                    ${r.status === 'PENDING' ? `
+                        <button class="btn-primary" onclick="acceptRide(${r.rideId})">Accept Ride Request</button>
+                    ` : ''}
+                    ${r.status === 'ACCEPTED' ? `
+                        <div style="color: #3182ce; font-size: 13px; margin-top: 5px;">⏳ Awaiting passenger dummy payment...</div>
+                    ` : ''}
+                </div>
+            `).join('');
+        } catch (err) { console.error(err); }
+    }
+
+    async function acceptRide(rideId) {
+        try {
+            await fetch(`/api/rides/${rideId}/accept?driverId=${getUserId(currentUser)}`, { method: 'POST' });
+            loadDriverRides();
+        } catch (err) { alert('Failed to accept ride.'); }
+    }
+
+    function handleLogout() {
+        currentUser = null;
+        showScreen('loginScreen');
+    }
+</script>
+</body>
+</html>
